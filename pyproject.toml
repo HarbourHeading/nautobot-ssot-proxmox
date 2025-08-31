@@ -1,0 +1,16 @@
+[project]
+name = "nautobot-ssot-proxmox"
+version = "0.1.0"
+description = "Minimal Nautobot SSoT Data Source to import Proxmox VMs/LXCs into Nautobot."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Your Team", email = "it@example.com" }]
+dependencies = [
+  "nautobot-ssot>=3.5.0",
+  "diffsync>=2.0.2",
+  "proxmoxer>=2.0.1",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
