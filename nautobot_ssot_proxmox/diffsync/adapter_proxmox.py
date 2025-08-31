@@ -32,7 +32,7 @@ class ProxmoxAdapter(Adapter):
     top_level contains both cluster and virtualmachine as independent roots.
     We relate VMs to a cluster by providing 'cluster__name' on VirtualMachineModel.
     """
-    top_level = ("cluster", "virtualmachine")
+    top_level = ["cluster", "virtualmachine"]
 
     cluster = ClusterModel
     virtualmachine = VirtualMachineModel

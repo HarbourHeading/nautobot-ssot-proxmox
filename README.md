@@ -50,6 +50,20 @@ This is intentionally minimal and safe-by-default:
     nautobot-server collectstatic --no-input
     sudo systemctl restart nautobot nautobot-worker
 
+## Development
+
+For development and type checking, install the development dependencies:
+
+```bash
+pip install -e .[dev]
+```
+
+To run `mypy` for static type checking:
+
+```bash
+mypy nautobot_ssot_proxmox/
+```
+
 ## Proxmox setup
 
 Create a dedicated API user and token in Proxmox (UI: Datacenter -> Permissions -> API Tokens). Grant the user PVEAuditor at the root path "/". Use the generated token name and secret in PLUGINS_CONFIG.
