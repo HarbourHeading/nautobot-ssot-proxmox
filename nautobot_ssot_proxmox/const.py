@@ -1,0 +1,17 @@
+# Configuration keys expected under settings.PLUGINS_CONFIG["nautobot_ssot_proxmox"]
+
+CFG_PROXMOX_URL = "PROXMOX_URL"
+CFG_PROXMOX_USER = "PROXMOX_USER"
+CFG_PROXMOX_TOKEN_NAME = "PROXMOX_TOKEN_NAME"
+CFG_PROXMOX_TOKEN_VALUE = "PROXMOX_TOKEN_VALUE"
+CFG_VERIFY_SSL = "VERIFY_SSL"
+
+CFG_CLUSTER_NAME = "CLUSTER_NAME"
+CFG_CLUSTER_TYPE_NAME = "CLUSTER_TYPE_NAME"
+
+CFG_DELETE_MISSING = "DELETE_MISSING"
+
+# Custom field keys on VirtualMachine objects.
+CF_PROXMOX_VMID = "proxmox_vmid"
+CF_PROXMOX_NODE = "proxmox_node"
+CF_PROXMOX_TYPE = "proxmox_type"  # qemu or lxc
