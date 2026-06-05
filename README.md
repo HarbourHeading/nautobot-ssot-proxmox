@@ -1,107 +1,74 @@
-# Nautobot SSoT: Proxmox (minimal)
+# Nautobot SSoT Proxmox
 
-Import Proxmox VE inventory (QEMU VMs and LXC containers) into Nautobot as VirtualMachines inside a single Cluster, using the Nautobot SSoT framework (DiffSync + Jobs). You get a built-in diff preview (dry-run) and standard Job scheduling.
+Unofficial Nautobot SSoT sync script to fetch basic VM information from Proxmox VE (remote) into Nautobot (local).
 
-This is intentionally minimal and safe-by-default:
-- Creates (or updates) one Cluster by name
-- Upserts VirtualMachines keyed by immutable proxmox_vmid custom field
-- Sets VM attributes: name, vCPUs, memory (MB), status (Active or Offline), cluster, and custom fields (node, type)
-- Does not delete by default; enable deletions via config
+![nautobot-vm-example.png](images/nautobot-vm-example.png)
 
-## Prerequisites
-
-- Nautobot 2.x up and running
-- Nautobot SSoT app installed and enabled
-- A Proxmox 8.x API token with read-only privileges (PVEAuditor is fine)
-- Ubuntu 24.04 host for Nautobot services (assumed)
+Observed working for:
+- Nautobot 3.1.3
+- Proxmox VE 9.2.3
 
 ## Install
 
-1) Activate your Nautobot virtual environment (e.g., `source /opt/nautobot/venv/bin/activate` or `source .venv/bin/activate`).
+### Proxmox API token
 
-2) Install this plugin using `pip`. This will install the package in "editable" mode and automatically handle all dependencies defined in `pyproject.toml`.
-    # From within the root of this cloned repository:
-    pip install -e .
+Assuming you're using Proxmox VE, in your Proxmox instance, configure a `User` 
+(Datacenter > Permissions > Users) and an `API token` (Datacenter > Permissions > API Tokens).
+Configure scope/permissions (Datacenter > Permissions) for the user or API with Path: `/` and Role `PVEAuditor`.
+Permissions can likely be scoped even smaller by adjusting path and creating a new role.
 
-3) Enable apps in nautobot_config.py:
+### Nautobot plugin
 
-    PLUGINS = [
-        "nautobot_ssot",
-        "nautobot_ssot_proxmox",
-    ]
+Currently, the plugin is not uploaded to any other platforms than GitHub. The recommended steps are to install it locally.
 
-    PLUGINS_CONFIG = {
-        "nautobot_ssot_proxmox": {
-            "PROXMOX_URL": "https://pve.example:8006",
-            "PROXMOX_USER": "nb-sync@pve",
-            "PROXMOX_TOKEN_NAME": "nautobot",
-            "PROXMOX_TOKEN_VALUE": "REDACTED_TOKEN_VALUE",
-            "VERIFY_SSL": True,
+Clone the repository
+````bash
+git clone https://github.com/HarbourHeading/nautobot-ssot-proxmox.git
+````
 
-            "CLUSTER_NAME": "Prod Proxmox",
-            "CLUSTER_TYPE_NAME": "Proxmox VE",
+Update `local_requirements.txt` or equivalent dependency configuration (e.g. `pyproject.toml`) to include
+````
+nautobot-ssot-proxmox @ file:///srv/nautobot/nautobot-ssot-proxmox
+````
 
-            "DELETE_MISSING": False,
-        },
-    }
+Enable and configure the plugin in `nautobot_config.py`:
+````python
+PLUGINS = ["nautobot_ssot", "nautobot_ssot_proxmox"]
 
-4) Apply migrations and restart services:
-    nautobot-server migrate
-    nautobot-server collectstatic --no-input
-    sudo systemctl restart nautobot nautobot-worker
+PLUGINS_CONFIG = {
+    "nautobot_ssot_proxmox": {
+        "proxmox_url": "https://pve.example.com",
+        "proxmox_port": "443",  # defaults to 8006 if not set
+        "proxmox_user": "nautobot-sync@pam",
+        "proxmox_token_name": "nautobot-sync-token",
+        "proxmox_token_value": "jc73dsef-3gr4-3gry-cgd4-a257hnjlfdwa",
+        "verify_ssl": True,
+        "cluster_name": "homelab",
+        "cluster_type_name": "Proxmox VE",
+        "certificate": "/srv/nautobot/client_certificate.p12", # optional
+        "certificate_passphrase": "my-password",  # optional
+        "http_proxy": "http://proxy.example:3128", # optional
+        "https_proxy": "http://proxy.example:3128", # optional
+    },
+}
+````
 
-## Development
+Reload nautobot
+````
+nautobot-server post_upgrade
+````
 
-For development and type checking, install the development dependencies:
+Then restart nautobot
+````
+systemctl restart nautobot nautobot-worker nautobot-scheduler
+````
 
-```bash
-pip install -e .[dev]
-```
+## Run
 
-To run `mypy` for static type checking:
+Just run the nautobot job `Proxmox -> Nautobot`
 
-```bash
-mypy nautobot_ssot_proxmox/
-```
+## Roadmap
 
-## Proxmox setup
-
-Create a dedicated API user and token in Proxmox (UI: Datacenter -> Permissions -> API Tokens). Grant the user PVEAuditor at the root path "/". Use the generated token name and secret in PLUGINS_CONFIG.
-
-## How it works
-
-- Job name: "Proxmox: Import inventory" under Apps -> SSoT.
-- Dry-run by default. You will see the diff before applying.
-- Identifiers:
-  - VM: custom_fields.proxmox_vmid (immutable)
-  - Cluster: name
-- Synced attributes:
-  - VM: name, vcpus, memory (MB), status__name ("Active" if running, else "Offline"), cluster__name, CFs proxmox_node, proxmox_type.
-
-## Run a sync
-
-1) UI: Apps -> SSoT -> Data Sources -> "Proxmox: Import inventory".
-2) Run with dry-run first.
-3) If the diff looks good, uncheck dry-run (commit) and run again.
-
-## Scheduling
-
-Create a Scheduled Job in the Nautobot UI to run every 5 to 15 minutes, as desired.
-
-## Extending later
-
-- Add VMInterfaces and IPs: introduce a VMInterfaceModel and enumerate NICs via per-VM endpoints, then map to Nautobot Virtualization interfaces and IPAM.
-- Multiple clusters: emit multiple ClusterModel objects and set cluster__name per VM.
-- Deletion policy: keep DELETE_MISSING=False for safety; or enable and let SSoT delete.
-
-## Troubleshooting
-
-- Missing config keys: check PLUGINS_CONFIG in nautobot_config.py.
-- SSL errors: set VERIFY_SSL=False to test, then fix CA trust.
-- Status mapping: "running" -> "Active", everything else -> "Offline".
-- Permissions: use a read-only Proxmox token; this job uses GET endpoints only.
-
-## Uninstall
-
-1) Remove "nautobot_ssot_proxmox" from PLUGINS.
-2) pip uninstall nautobot-ssot-proxmox and restart Nautobot services.
+- [ ] Fetch VM disks to get total disk space.
+- [ ] Fetch VM network devices to get and create IP Addresses, ip ranges and interfaces.
+- [ ] Make what is currently the plugin config, into job fields to allow syncing multiple different proxmox instances.

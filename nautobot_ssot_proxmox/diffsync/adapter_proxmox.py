@@ -1,35 +1,20 @@
-"""
-Remote (source) adapter: reads Proxmox inventory via proxmoxer.
-
-We intentionally keep this minimal:
-- One Cluster (from config)
-- All VMs and LXC containers listed by /cluster/resources?type=vm
-- We record VMID, name, vCPUs, memory (MB), status, node, and type.
-"""
+"""Source (Proxmox) adapter"""
+import os
 from typing import Optional
 
 from diffsync import Adapter
 from proxmoxer import ProxmoxAPI
 from proxmoxer.core import ResourceException
-from requests.exceptions import RequestException
 
-from ..const import (
-    CFG_PROXMOX_URL,
-    CFG_PROXMOX_USER,
-    CFG_PROXMOX_TOKEN_NAME,
-    CFG_PROXMOX_TOKEN_VALUE,
-    CFG_VERIFY_SSL,
-    CFG_CLUSTER_NAME,
-    CFG_CLUSTER_TYPE_NAME,
-)
+from ..config import ProxmoxConfig
 from .models import ClusterModel, VirtualMachineModel
+from ..utils.certs import handle_p12_cert
 
 
 class ProxmoxAdapter(Adapter):
-    """
-    DiffSync Adapter that loads a model tree from Proxmox.
+    """DiffSync Adapter that loads a model tree from Proxmox.
 
-    top_level contains both cluster and virtualmachine as independent roots.
+    'top_level' contains both cluster and virtualmachine as independent roots.
     We relate VMs to a cluster by providing 'cluster__name' on VirtualMachineModel.
     """
     top_level = ["cluster", "virtualmachine"]
@@ -37,57 +22,81 @@ class ProxmoxAdapter(Adapter):
     cluster = ClusterModel
     virtualmachine = VirtualMachineModel
 
-    def __init__(self, *args, config: dict, job=None, **kwargs):
+    def __init__(self, *args, config: ProxmoxConfig, job=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.job = job
         self.config = config
+        self._temp_files = []
 
-        verify_ssl = bool(self.config.get(CFG_VERIFY_SSL, True))
+        host = self.config.proxmox_url
+        if host.startswith("https://"):
+            host = host[8:]
+        elif host.startswith("http://"):
+            host = host[7:]
 
-        # ProxmoxAPI host parameter accepts a hostname or URL base without
-        # path. For clarity we support full https URL; proxmoxer will handle it.
+        proxies = {}
+        if self.config.http_proxy:
+            proxies["http"] = self.config.http_proxy
+        if self.config.https_proxy:
+            proxies["https"] = self.config.https_proxy
+
+        cert = self.config.certificate
+        if isinstance(cert, str):
+            cert = handle_p12_cert(cert, self.config.certificate_passphrase)
+        elif isinstance(cert, tuple):
+            cert = (handle_p12_cert(cert[0], self.config.certificate_passphrase), handle_p12_cert(cert[1], self.config.certificate_passphrase))
+
+        self._temp_files.append(cert)
+
         try:
             self.proxmox = ProxmoxAPI(
-                host=self.config[CFG_PROXMOX_URL],
-                user=self.config[CFG_PROXMOX_USER],
-                token_name=self.config[CFG_PROXMOX_TOKEN_NAME],
-                token_value=self.config[CFG_PROXMOX_TOKEN_VALUE],
-                verify_ssl=verify_ssl,
+                host=host,
+                user=self.config.proxmox_user,
+                token_name=self.config.proxmox_token_name,
+                token_value=self.config.proxmox_token_value,
+                port=self.config.proxmox_port,
+                verify_ssl=self.config.verify_ssl,
+                cert=cert,
+                proxies=proxies,
             )
-        except RequestException as err:
-            raise RuntimeError(f"Failed to connect to Proxmox API at {self.config[CFG_PROXMOX_URL]}: {err}") from err
+        except Exception as err:
+            raise RuntimeError(f"Failed to connect to Proxmox API at {self.config.proxmox_url}: {err}") from err
+
+    def __del__(self):
+        """Clean up temporary files."""
+        for temp_file in getattr(self, "_temp_files", []):
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+            except Exception:
+                pass
 
 
     @staticmethod
     def _status_to_nb(status: Optional[str]) -> str:
-        """
-        Map Proxmox status to Nautobot Status names.
-        """
+        """Map Proxmox status to Nautobot Status names."""
         return "Active" if status == "running" else "Offline"
 
     def load(self):
-        """
-        Build the in-memory DiffSync objects from Proxmox.
+        """Build the in-memory DiffSync objects from Proxmox.
 
         We create exactly one Cluster (name and type from config),
         then create a VirtualMachineModel for every VM/LXC found.
         """
-        cluster_name = self.config[CFG_CLUSTER_NAME]
-        cluster_type = self.config.get(CFG_CLUSTER_TYPE_NAME, "Proxmox VE")
+        cluster_name = self.config.cluster_name
+        cluster_type = self.config.cluster_type_name or "Proxmox VE"
 
-        # 1) Cluster
-        cluster_obj = self.cluster(name=cluster_name, type__name=cluster_type)
+        cluster_obj = self.cluster(name=cluster_name, cluster_type__name=cluster_type)
         self.add(cluster_obj)
 
-        # 2) VMs and LXCs from /cluster/resources?type=vm
         try:
             items = self.proxmox.cluster.resources.get(type="vm")
         except ResourceException as err:
             raise RuntimeError(
-                f"Proxmox API error: {err.response.status_code} {err.response.reason}. "
-                f"Check credentials and permissions. Response: {err.response.text}"
+                f"Proxmox API error: {err.status_code} {err.status_message}. "
+                f"Check credentials and permissions. Response: {err.content}"
             ) from err
-        except RequestException as err:
+        except Exception as err:
             raise RuntimeError(f"Proxmox network error: {err}") from err
 
         for r in items:
@@ -98,19 +107,18 @@ class ProxmoxAdapter(Adapter):
             name = r.get("name") or f"vm-{vmid}"
             nb_status = self._status_to_nb(r.get("status"))
             vcpus = int(r.get("maxcpu") or 0)
-            # maxmem is bytes; store MB in Nautobot
-            mem_mb = int((r.get("maxmem") or 0) // (1024 * 1024))
+            mem_mb = int((r.get("maxmem") or 0) // (1024 * 1024))  # maxmem is bytes; store MB in Nautobot
             node = r.get("node")
             vmtype = r.get("type")  # 'qemu' or 'lxc'
 
             vm = self.virtualmachine(
-                custom_fields__proxmox_vmid=vmid,
+                proxmox_vmid=vmid,
                 name=name,
                 vcpus=vcpus,
                 memory=mem_mb,
                 status__name=nb_status,
                 cluster__name=cluster_name,
-                custom_fields__proxmox_node=node,
-                custom_fields__proxmox_type=vmtype,
+                proxmox_node=node,
+                proxmox_type=vmtype,
             )
             self.add(vm)
