@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-ssot-proxmox"
-version = "1.0.5"
+version = "1.0.6"
 description = "Unofficial Nautobot SSoT sync script to fetch VMs created in Proxmox VE (remote) into Nautobot (local)."
 authors = ["HarbourHeading <public.riptide549@passinbox.com>"]
 license = "MIT"
@@ -11,7 +11,6 @@ python = ">=3.12,<3.14"
 nautobot = "^3.1.3"
 nautobot-ssot = "^4.4.0"
 proxmoxer = "^2.3.0"
-requests = "^2.34.2"
 diffsync = "^2.2.3"
 cryptography = "^48.0.0"
 

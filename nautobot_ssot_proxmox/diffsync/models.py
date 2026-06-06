@@ -32,6 +32,7 @@ class VirtualMachineModel(NautobotModel):
       - name
       - vcpus
       - memory (MB)
+      - disk (GB)
       - status__name ("Active" when running, else "Offline")
       - cluster__name (Cluster membership)
       - proxmox_node
@@ -44,6 +45,7 @@ class VirtualMachineModel(NautobotModel):
         "name",
         "vcpus",
         "memory",
+        "disk",
         "status__name",
         "cluster__name",
         "proxmox_node",
@@ -54,6 +56,7 @@ class VirtualMachineModel(NautobotModel):
     name: str
     vcpus: int
     memory: int
+    disk: int
     status__name: str
     cluster__name: str
     proxmox_node: Annotated[Optional[str], CustomFieldAnnotation(key="proxmox_node")] = None

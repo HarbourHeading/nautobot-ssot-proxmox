@@ -3,6 +3,7 @@ import os
 from typing import Optional
 
 from diffsync import Adapter
+from nautobot.extras.jobs import Job
 from proxmoxer import ProxmoxAPI
 from proxmoxer.core import ResourceException
 
@@ -24,7 +25,7 @@ class ProxmoxAdapter(Adapter):
 
     def __init__(self, *args, config: ProxmoxConfig, job=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.job = job
+        self.job: Job = job
         self.config = config
         self._temp_files = []
 
@@ -44,7 +45,8 @@ class ProxmoxAdapter(Adapter):
         if isinstance(cert, str):
             cert = handle_p12_cert(cert, self.config.certificate_passphrase)
         elif isinstance(cert, tuple):
-            cert = (handle_p12_cert(cert[0], self.config.certificate_passphrase), handle_p12_cert(cert[1], self.config.certificate_passphrase))
+            cert = (handle_p12_cert(cert[0], self.config.certificate_passphrase),
+                    handle_p12_cert(cert[1], self.config.certificate_passphrase))
 
         self._temp_files.append(cert)
 
@@ -70,7 +72,6 @@ class ProxmoxAdapter(Adapter):
                     os.remove(temp_file)
             except Exception:
                 pass
-
 
     @staticmethod
     def _status_to_nb(status: Optional[str]) -> str:
@@ -99,26 +100,28 @@ class ProxmoxAdapter(Adapter):
         except Exception as err:
             raise RuntimeError(f"Proxmox network error: {err}") from err
 
-        for r in items:
-            vmid = str(r.get("vmid"))
+        for node in items:
+            vmid = str(node.get("vmid" or ""))
             if not vmid:
                 continue
 
-            name = r.get("name") or f"vm-{vmid}"
-            nb_status = self._status_to_nb(r.get("status"))
-            vcpus = int(r.get("maxcpu") or 0)
-            mem_mb = int((r.get("maxmem") or 0) // (1024 * 1024))  # maxmem is bytes; store MB in Nautobot
-            node = r.get("node")
-            vmtype = r.get("type")  # 'qemu' or 'lxc'
+            name = node.get("name") or f"vm-{vmid}"
+            nb_status = self._status_to_nb(node.get("status"))
+            vcpus = int(node.get("maxcpu", 0))
+            mem_mb = int((node.get("maxmem", 0)) // (1024 * 1024))  # MB
+            disk_max_gb = int((node.get("maxdisk", 0)) // (1024 * 1024 * 1024)) or 0  # GB
+            proxmox_node = node.get("node")
+            vmtype = node.get("type")  # 'qemu' or 'lxc'
 
             vm = self.virtualmachine(
                 proxmox_vmid=vmid,
                 name=name,
                 vcpus=vcpus,
                 memory=mem_mb,
+                disk=disk_max_gb,
                 status__name=nb_status,
                 cluster__name=cluster_name,
-                proxmox_node=node,
+                proxmox_node=proxmox_node,
                 proxmox_type=vmtype,
             )
             self.add(vm)

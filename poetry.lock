@@ -838,17 +838,17 @@ Django = ">=4.1"
 
 [[package]]
 name = "django-timezone-field"
-version = "7.2.1"
+version = "7.2.2"
 description = "A Django app providing DB, form, and REST framework fields for zoneinfo and pytz timezone objects."
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "django_timezone_field-7.2.1-py3-none-any.whl", hash = "sha256:276915b72c5816f57c3baf9e43f816c695ef940d1b21f91ebf6203c09bf4ad44"},
-    {file = "django_timezone_field-7.2.1.tar.gz", hash = "sha256:def846f9e7200b7b8f2a28fcce2b78fb2d470f6a9f272b07c4e014f6ba4c6d2e"},
+    {file = "django_timezone_field-7.2.2-py3-none-any.whl", hash = "sha256:30354d0f37462a0b9b5c289e271580a6be9b58dea30e7bf88435372882c8fa7a"},
+    {file = "django_timezone_field-7.2.2.tar.gz", hash = "sha256:a004d0b19fe10bf5964cb21a65b36324b16a61879e4711c0dafdf8d6253e8ebc"},
 ]
 
 [package.dependencies]
-Django = ">=3.2,<6.1"
+Django = ">=4.2,<6.2"
 
 [[package]]
 name = "django-tree-queries"
@@ -2600,13 +2600,13 @@ doc = ["sphinx"]
 
 [[package]]
 name = "structlog"
-version = "25.5.0"
+version = "26.1.0"
 description = "Structured Logging for Python"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 files = [
-    {file = "structlog-25.5.0-py3-none-any.whl", hash = "sha256:a8453e9b9e636ec59bd9e79bbd4a72f025981b3ba0f5837aebf48f02f37a7f9f"},
-    {file = "structlog-25.5.0.tar.gz", hash = "sha256:098522a3bebed9153d4570c6d0288abf80a031dfdb2048d59a49e9dc2190fc98"},
+    {file = "structlog-26.1.0-py3-none-any.whl", hash = "sha256:e081a26d6c373e6d201eca24eede26d8ffab07f88f477822e679183428d3d91e"},
+    {file = "structlog-26.1.0.tar.gz", hash = "sha256:f63a716cbd1b1291cf7661de7794b455acfa4c43c5bcf1630e6ad5ddc1adb3b7"},
 ]
 
 [[package]]
@@ -2753,4 +2753,4 @@ test = ["pytest", "websockets"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.14"
-content-hash = "0599870a1edd1e59771d577d3ade50cce62a664c91c4077d7dbc2fed12de8fee"
+content-hash = "89fbfba580ee455109a49dcec1ab2ebd9ba827a470b31a22ac7f57c117c5cc45"

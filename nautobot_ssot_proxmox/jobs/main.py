@@ -1,4 +1,5 @@
 """Proxmox to nautobot sync job."""
+
 from typing import Any
 from django.contrib.contenttypes.models import ContentType
 from django.templatetags.static import static
@@ -19,6 +20,7 @@ def _get_config() -> ProxmoxConfig:
     """Helper to load config into dataclass."""
     from django.conf import settings
     plugin_settings = settings.PLUGINS_CONFIG.get("nautobot_ssot_proxmox", {})
+
     # Filter only fields present in ProxmoxConfig
     valid_keys = ProxmoxConfig.__annotations__.keys()
     filtered = {k: v for k, v in plugin_settings.items() if k in valid_keys}
@@ -44,7 +46,6 @@ def _ensure_vm_custom_fields() -> None:
             key=key,
             defaults={"label": label, "type": "text"},
         )
-        # Ensure the field is attached to VirtualMachine
         if vm_ct not in cf.content_types.all():
             cf.content_types.add(vm_ct)
 
@@ -66,7 +67,7 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
         description = "Import Proxmox VMs/LXCs into Nautobot Cluster as VirtualMachines (SSoT)."
         data_source = "Proxmox (remote)"
         data_source_icon = static("img/nautobot_logo.png")
-        commit_default = False  # default to dry-run
+        commit_default = True
 
     @classmethod
     def data_mappings(cls):
@@ -105,23 +106,6 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
 
         self.target_adapter = NautobotInventoryAdapter(job=self)
         self.target_adapter.load()
-
-    def data_mapping(self) -> dict[str, Any]:
-        """Optional: expose a short mapping summary in the UI."""
-        return {
-            "Cluster.name": "Config[cluster_name]",
-            "Cluster.cluster_type__name": "Config[cluster_type_name]",
-            "VirtualMachine.identifiers": "proxmox_vmid",
-            "VirtualMachine.attributes": [
-                "name",
-                "vcpus",
-                "memory",
-                "status__name",
-                "cluster__name",
-                "proxmox_node",
-                "proxmox_type",
-            ],
-        }
 
     def execute_sync(self, *args, **kwargs) -> None:
         """Override to ensure deletions are never allowed."""

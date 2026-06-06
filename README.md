@@ -67,6 +67,27 @@ systemctl restart nautobot nautobot-worker nautobot-scheduler
 
 Just run the nautobot job `Proxmox -> Nautobot`
 
+## Development
+
+The repo does not host or provide steps to set up its own nautobot development environment.
+
+Clone the repository
+````bash
+git clone https://github.com/HarbourHeading/nautobot-ssot-proxmox.git
+````
+
+Change directory
+````bash
+cd nautobot-ssot-proxmox
+````
+
+Install dependencies with poetry
+````bash
+poetry lock ; poetry install
+````
+
+On a new version, bump the version in [pyproject.toml](pyproject.toml).
+
 ## Roadmap
 
 - [ ] Fetch VM disks to get total disk space.
