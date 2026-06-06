@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "nautobot-ssot-proxmox"
-version = "1.0.6"
-description = "Unofficial Nautobot SSoT sync script to fetch VMs created in Proxmox VE (remote) into Nautobot (local)."
+version = "1.2.1"
+description = "Unofficial Nautobot SSoT sync script to fetch Node data created in Proxmox VE (remote) into Nautobot (local)."
 authors = ["HarbourHeading <public.riptide549@passinbox.com>"]
 license = "MIT"
 readme = "README.md"

@@ -1,7 +1,8 @@
 # Nautobot SSoT Proxmox
 
 Unofficial Nautobot SSoT sync script to fetch basic VM information from Proxmox VE (remote) into Nautobot (local).
-Creates Virtual machines, Proxmox nodes/clusters and custom fields related to proxmox values (e.g., ID and type).
+Creates Virtual machines, Proxmox nodes/clusters, VM interfaces, IP addresses, IP prefixes and custom fields related to proxmox values (e.g., ID and type).
+
 
 Observed working for:
 - Nautobot 3.1.3
@@ -92,5 +93,14 @@ On a new version, bump the version in [pyproject.toml](pyproject.toml).
 
 ## Roadmap
 
+- [X] Fetch Clusters/nodes and Virtual Machines (QEMU & LXC).
 - [X] Fetch VM disks to get total disk space.
-- [ ] Fetch VM network devices to get and create IP Addresses, ip ranges and interfaces.
+- [X] Fetch VM network devices to get and create IP Addresses, ip ranges and interfaces.
+- [X] Add tags from proxmox.
+- [ ] Add Custom field for [hostname](https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/qemu/{vmid}/agent/get-host-name).
+- [ ] Add VLANs for interfaces.
+- [ ] Add parent interfaces from the cluster and add a reference onto the vm interfaces.
+- [ ] Add MTU support for interfaces.
+- [ ] Add MAC address support for interfaces.
+- [ ] Add custom fields of most [VM config data](https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/qemu/{vmid}/config).
+- [ ] Add support for [nautobot firewall model](https://docs.nautobot.com/projects/firewall-models/en/latest/).

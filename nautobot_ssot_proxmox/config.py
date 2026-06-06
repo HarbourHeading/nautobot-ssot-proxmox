@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Union
 
+
 @dataclass
 class ProxmoxConfig:
     """Plugin configuration"""

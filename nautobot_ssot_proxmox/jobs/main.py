@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.templatetags.static import static
 from django.urls import reverse
 from diffsync.enum import DiffSyncFlags
-from nautobot.extras.models import CustomField
+from nautobot.extras.models import CustomField, Status
 from nautobot.virtualization.models import ClusterType, VirtualMachine
 from nautobot_ssot.jobs.base import DataMapping, DataSource
 
@@ -49,7 +49,6 @@ def _ensure_vm_custom_fields() -> None:
         if vm_ct not in cf.content_types.all():
             cf.content_types.add(vm_ct)
 
-
 class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attributes
     """Sync Virtual Machines from Proxmox into Nautobot."""
 
@@ -75,6 +74,9 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
         return (
             DataMapping("Proxmox Cluster", None, "Nautobot Cluster", reverse("virtualization:cluster_list")),
             DataMapping("Proxmox VM/LXC", None, "Nautobot VirtualMachine", reverse("virtualization:virtualmachine_list")),
+            DataMapping("Proxmox VM Network", None, "Nautobot Prefix", reverse("ipam:prefix_list")),
+            DataMapping("Proxmox VM IP", None, "Nautobot IPAddress", reverse("ipam:ipaddress_list")),
+            DataMapping("Proxmox VM Interface", None, "Nautobot VM Interface", reverse("virtualization:vminterface_list")),
         )
 
     def config_information(self) -> dict[str, Any]:
