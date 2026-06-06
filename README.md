@@ -1,12 +1,13 @@
 # Nautobot SSoT Proxmox
 
 Unofficial Nautobot SSoT sync script to fetch basic VM information from Proxmox VE (remote) into Nautobot (local).
-
-![nautobot-vm-example.png](images/nautobot-vm-example.png)
+Creates Virtual machines, Proxmox nodes/clusters and custom fields related to proxmox values (e.g., ID and type).
 
 Observed working for:
 - Nautobot 3.1.3
 - Proxmox VE 9.2.3
+
+![nautobot-vm-example.png](images/nautobot-vm-example.png)
 
 ## Install
 
@@ -14,7 +15,7 @@ Observed working for:
 
 Assuming you're using Proxmox VE, in your Proxmox instance, configure a `User` 
 (Datacenter > Permissions > Users) and an `API token` (Datacenter > Permissions > API Tokens).
-Configure scope/permissions (Datacenter > Permissions) for the user or API with Path: `/` and Role `PVEAuditor`.
+Configure scope/permissions (Datacenter > Permissions) for the user, API & group with Path: `/` and Role `PVEAuditor`.
 Permissions can likely be scoped even smaller by adjusting path and creating a new role.
 
 ### Nautobot plugin
@@ -31,7 +32,8 @@ Update `local_requirements.txt` or equivalent dependency configuration (e.g. `py
 nautobot-ssot-proxmox @ file:///srv/nautobot/nautobot-ssot-proxmox
 ````
 
-Enable and configure the plugin in `nautobot_config.py`:
+Enable and configure the plugin in `nautobot_config.py`. NOTE: Example has secrets in config. Limit access to the config,
+alternatively fetch from `.env` or equivalent mem store.
 ````python
 PLUGINS = ["nautobot_ssot", "nautobot_ssot_proxmox"]
 
@@ -90,6 +92,5 @@ On a new version, bump the version in [pyproject.toml](pyproject.toml).
 
 ## Roadmap
 
-- [ ] Fetch VM disks to get total disk space.
+- [X] Fetch VM disks to get total disk space.
 - [ ] Fetch VM network devices to get and create IP Addresses, ip ranges and interfaces.
-- [ ] Make what is currently the plugin config, into job fields to allow syncing multiple different proxmox instances.
