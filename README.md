@@ -97,7 +97,7 @@ On a new version, bump the version in [pyproject.toml](pyproject.toml).
 - [X] Fetch VM disks to get total disk space.
 - [X] Fetch VM network devices to get and create IP Addresses, ip ranges and interfaces.
 - [X] Add tags from proxmox.
-- [ ] Add Custom field for [hostname](https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/qemu/{vmid}/agent/get-host-name).
+- [X] Add Custom field for [hostname](https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/qemu/{vmid}/agent/get-host-name).
 - [ ] Add VLANs for interfaces.
 - [ ] Add parent interfaces from the cluster and add a reference onto the vm interfaces.
 - [ ] Add MTU support for interfaces.
