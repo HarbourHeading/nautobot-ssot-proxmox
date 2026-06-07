@@ -140,6 +140,18 @@ class ProxmoxAdapter(Adapter):
                     {"description": "Imported from Proxmox"},
                 )
 
+            try:
+                if vm_type == 'qemu':
+                    hostnames = self.proxmox.nodes(proxmox_node).qemu(vm_id).agent("get-host-name").get()
+                else:
+                    hostnames = self.proxmox.nodes(proxmox_node).lxc(vm_id).agent("get-host-name").get()
+            except ResourceException:
+                hostnames = {}
+                # Fails if qemu-guest-agent is not installed. Maybe use the below method instead?
+                # https://forum.proxmox.com/threads/proxmox-api-check-qemu-installed-and-extract-tags.160885/
+
+            hostname = hostnames.get("result", {}).get("host-name", "")
+
             complete_vm = self.virtualmachine(
                 proxmox_vmid=vm_id,
                 name=name,
@@ -150,6 +162,7 @@ class ProxmoxAdapter(Adapter):
                 cluster__name=cluster_name,
                 proxmox_node=proxmox_node,
                 proxmox_type=vm_type,
+                hostname=hostname,
                 tags=vm_tags,
             )
             self.add(complete_vm)

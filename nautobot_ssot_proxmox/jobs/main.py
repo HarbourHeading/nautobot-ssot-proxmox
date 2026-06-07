@@ -40,6 +40,7 @@ def _ensure_vm_custom_fields() -> None:
         ("proxmox_vmid", "Proxmox VMID"),
         ("proxmox_node", "Proxmox Node"),
         ("proxmox_type", "Proxmox Type"),
+        ("hostname", "Hostname"),
     ]
     for key, label in wanted:
         cf, _ = CustomField.objects.get_or_create(

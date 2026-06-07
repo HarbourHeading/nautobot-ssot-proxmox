@@ -58,6 +58,7 @@ class VirtualMachineModel(NautobotModel):
         "cluster__name",
         "proxmox_node",
         "proxmox_type",
+        "hostname",
         "tags",
     )
 
@@ -70,6 +71,7 @@ class VirtualMachineModel(NautobotModel):
     cluster__name: str
     proxmox_node: Annotated[Optional[str], CustomFieldAnnotation(key="proxmox_node")] = None
     proxmox_type: Annotated[Optional[str], CustomFieldAnnotation(key="proxmox_type")] = None
+    hostname: Annotated[Optional[str], CustomFieldAnnotation(key="hostname")] = None
     tags: List[TagDict] = []
 
 
