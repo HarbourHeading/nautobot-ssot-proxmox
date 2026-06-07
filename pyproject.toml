@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-ssot-proxmox"
-version = "1.2.1"
+version = "1.2.2"
 description = "Unofficial Nautobot SSoT sync script to fetch Node data created in Proxmox VE (remote) into Nautobot (local)."
 authors = ["HarbourHeading <public.riptide549@passinbox.com>"]
 license = "MIT"

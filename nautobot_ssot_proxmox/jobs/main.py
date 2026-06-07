@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.templatetags.static import static
 from django.urls import reverse
 from diffsync.enum import DiffSyncFlags
-from nautobot.extras.models import CustomField, Status
+from nautobot.extras.models import CustomField
 from nautobot.virtualization.models import ClusterType, VirtualMachine
 from nautobot_ssot.jobs.base import DataMapping, DataSource
 
@@ -77,6 +77,7 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
             DataMapping("Proxmox VM Network", None, "Nautobot Prefix", reverse("ipam:prefix_list")),
             DataMapping("Proxmox VM IP", None, "Nautobot IPAddress", reverse("ipam:ipaddress_list")),
             DataMapping("Proxmox VM Interface", None, "Nautobot VM Interface", reverse("virtualization:vminterface_list")),
+            DataMapping("Proxmox VM Tags", None, "Nautobot VM Tags", reverse("virtualization:tags_list")),
         )
 
     def config_information(self) -> dict[str, Any]:
