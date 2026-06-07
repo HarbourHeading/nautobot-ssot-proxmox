@@ -68,7 +68,29 @@ systemctl restart nautobot nautobot-worker nautobot-scheduler
 
 ## Run
 
-Just run the nautobot job `Proxmox -> Nautobot`
+Just run the nautobot job `Proxmox -> Nautobot`.
+
+An example graphql query
+````graphql
+{
+  virtual_machines {
+    name
+    tags {
+      name
+    }
+    status {
+      name
+    }
+    _custom_field_data
+    interfaces {
+      name
+      ip_addresses {
+        host
+      }
+    }
+  }
+}
+````
 
 ## Development
 
@@ -104,3 +126,4 @@ On a new version, bump the version in [pyproject.toml](pyproject.toml).
 - [ ] Add MAC address support for interfaces.
 - [ ] Add custom fields of most [VM config data](https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/qemu/{vmid}/config).
 - [ ] Add support for [nautobot firewall model](https://docs.nautobot.com/projects/firewall-models/en/latest/).
+
