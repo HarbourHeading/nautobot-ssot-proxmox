@@ -33,7 +33,7 @@ NOTE: [Nautobot SSoT](https://docs.nautobot.com/projects/ssot/en/latest/admin/in
 
 Clone the repository
 ````bash
-git clone https://github.com/HarbourHeading/nautobot-ssot-proxmox.git
+git clone https://codeberg.org/Harbourheading/nautobot-ssot-proxmox.git
 ````
 
 Update `local_requirements.txt` or equivalent dependency configuration (e.g. `pyproject.toml`) to include
