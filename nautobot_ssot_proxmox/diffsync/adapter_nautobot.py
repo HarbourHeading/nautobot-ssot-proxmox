@@ -5,12 +5,7 @@ from nautobot_ssot_proxmox.diffsync.models import ClusterModel, VirtualMachineMo
 
 
 class NautobotInventoryAdapter(NautobotAdapter):
-    """
-    Autoloader for our Nautobot models.
-
-    'top_level' lists the models to load independently. VirtualMachineModel
-    includes 'cluster__name' so created VMs are attached to the cluster.
-    """
+    """DiffSync Adapter that loads a model tree from Nautobot."""
     top_level = ("tag", "cluster", "virtualmachine", "interface", "prefix", "ipaddress")
 
     cluster = ClusterModel

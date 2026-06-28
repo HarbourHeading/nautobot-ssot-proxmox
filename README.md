@@ -1,14 +1,20 @@
 # Nautobot SSoT Proxmox
 
 Unofficial Nautobot SSoT sync script to fetch basic VM information from Proxmox VE (remote) into Nautobot (local).
-Creates Virtual machines, Proxmox nodes/clusters, VM interfaces, IP addresses, IP prefixes and custom fields related to proxmox values (e.g., ID and type).
-
-
-Observed working for:
-- Nautobot 3.1.3
-- Proxmox VE 9.2.3
 
 ![nautobot-vm-example.png](images/nautobot-vm-example.png)
+
+Creates in nautobot:
+- Virtual machines (and accompanying data like CPUs, memory and disk)
+- Custom fields related to proxmox values (e.g., ID, type and hostname).
+- Proxmox nodes/clusters
+- VM interfaces
+- IP addresses
+- IP prefixes
+
+Observed working for:
+- Nautobot 3.1.4
+- Proxmox VE 9.2.3
 
 ## Install
 
@@ -17,11 +23,13 @@ Observed working for:
 Assuming you're using Proxmox VE, in your Proxmox instance, configure a `User` 
 (Datacenter > Permissions > Users) and an `API token` (Datacenter > Permissions > API Tokens).
 Configure scope/permissions (Datacenter > Permissions) for the user, API & group with Path: `/` and Role `PVEAuditor`.
-Permissions can likely be scoped even smaller by adjusting path and creating a new role.
+Permissions can likely be scoped even smaller by adjusting the path and creating a new role.
 
 ### Nautobot plugin
 
-Currently, the plugin is not uploaded to any other platforms than GitHub. The recommended steps are to install it locally.
+Currently, the plugin is not uploaded to any other platforms than Codeberg. 
+The below steps are to install the plugin locally and to run the steps on the nautobot server.
+NOTE: [Nautobot SSoT](https://docs.nautobot.com/projects/ssot/en/latest/admin/install/) needs to be installed for the plugin to work.
 
 Clone the repository
 ````bash
@@ -34,7 +42,7 @@ nautobot-ssot-proxmox @ file:///srv/nautobot/nautobot-ssot-proxmox
 ````
 
 Enable and configure the plugin in `nautobot_config.py`. NOTE: Example has secrets in config. Limit access to the config,
-alternatively fetch from `.env` or equivalent mem store.
+alternatively fetch from `.env` or an equivalent secret store.
 ````python
 PLUGINS = ["nautobot_ssot", "nautobot_ssot_proxmox"]
 
@@ -119,11 +127,12 @@ On a new version, bump the version in [pyproject.toml](pyproject.toml).
 - [X] Fetch VM disks to get total disk space.
 - [X] Fetch VM network devices to get and create IP Addresses, ip ranges and interfaces.
 - [X] Add tags from proxmox.
-- [X] Add Custom field for [hostname](https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/qemu/{vmid}/agent/get-host-name).
+- [X] Add a Custom field for [hostname](https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/qemu/{vmid}/agent/get-host-name).
 - [ ] Add VLANs for interfaces.
-- [ ] Add parent interfaces from the cluster and add a reference onto the vm interfaces.
+- [ ] Add parent interfaces from the cluster.
 - [ ] Add MTU support for interfaces.
 - [ ] Add MAC address support for interfaces.
 - [ ] Add custom fields of most [VM config data](https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/qemu/{vmid}/config).
 - [ ] Add support for [nautobot firewall model](https://docs.nautobot.com/projects/firewall-models/en/latest/).
+- [ ] Add syncing from Nautobot -> Proxmox.
 

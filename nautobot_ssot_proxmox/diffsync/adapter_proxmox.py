@@ -17,11 +17,7 @@ from ..utils.certs import handle_p12_cert
 
 
 class ProxmoxAdapter(Adapter):
-    """DiffSync Adapter that loads a model tree from Proxmox.
-
-    'top_level' contains both cluster and virtualmachine as independent roots.
-    We relate VMs to a cluster by providing 'cluster__name' on VirtualMachineModel.
-    """
+    """DiffSync Adapter that loads a model tree from Proxmox."""
     top_level = ["tag", "cluster", "virtualmachine", "interface", "prefix", "ipaddress"]
 
     cluster = ClusterModel
@@ -121,8 +117,8 @@ class ProxmoxAdapter(Adapter):
             name = vm.get("name") or f"vm-{vm_id}"
             nb_status = self._status_to_nb(vm.get("status"))
             vcpus = int(vm.get("maxcpu", 0))
-            mem_mb = int((vm.get("maxmem", 0)) // (1024 * 1024))  # MB
-            disk_max_gb = int((vm.get("maxdisk", 0)) // (1024 * 1024 * 1024)) or 0  # GB
+            mem_mb = int((vm.get("maxmem", 0)) // (1024 * 1024))  # Convert to MB
+            disk_max_gb = int((vm.get("maxdisk", 0)) // (1024 * 1024 * 1024)) or 0  # Convert to GB
             proxmox_node = vm.get("node") or vm.get("vm")
             vm_type = vm.get("type")  # 'qemu' or 'lxc'
 
@@ -169,7 +165,8 @@ class ProxmoxAdapter(Adapter):
 
         ## SETUP PREFIXES, INTERFACES AND IP ADDRESSES
 
-        # Collect all interface and IP data
+        # Collect all interface and IP data & reformat
+        # TODO(Harbourheading): From here is plain stupid. Just loop over it once instead of 4x
         vm_network_data = []
         for vm in vm_resources:
             vm_status = vm.get('status')

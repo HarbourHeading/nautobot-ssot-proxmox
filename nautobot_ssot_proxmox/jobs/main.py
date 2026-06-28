@@ -18,6 +18,7 @@ name = "SSoT Proxmox"
 
 def _get_config() -> ProxmoxConfig:
     """Helper to load config into dataclass."""
+
     from django.conf import settings
     plugin_settings = settings.PLUGINS_CONFIG.get("nautobot_ssot_proxmox", {})
 
@@ -29,11 +30,13 @@ def _get_config() -> ProxmoxConfig:
 
 def _ensure_cluster_type(type_name: str) -> None:
     """Make sure the ClusterType referenced by the job exists."""
+
     ClusterType.objects.get_or_create(name=type_name)
 
 
 def _ensure_vm_custom_fields() -> None:
     """Create required CustomFields on VirtualMachine if they do not exist."""
+
     vm_ct = ContentType.objects.get_for_model(VirtualMachine)
 
     wanted = [
@@ -42,6 +45,7 @@ def _ensure_vm_custom_fields() -> None:
         ("proxmox_type", "Proxmox Type"),
         ("hostname", "Hostname"),
     ]
+
     for key, label in wanted:
         cf, _ = CustomField.objects.get_or_create(
             key=key,
@@ -54,7 +58,6 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
     """Sync Virtual Machines from Proxmox into Nautobot."""
 
     def __init__(self):
-        """Initialize ProxmoxDataSource."""
         super().__init__()
         self.diffsync_flags = (
             self.diffsync_flags | DiffSyncFlags.SKIP_UNMATCHED_DST  # pylint: disable=unsupported-binary-operation
@@ -72,6 +75,7 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
     @classmethod
     def data_mappings(cls):
         """This Job maps objects from Proxmox to Nautobot."""
+
         return (
             DataMapping("Proxmox Cluster", None, "Nautobot Cluster", reverse("virtualization:cluster_list")),
             DataMapping("Proxmox VM/LXC", None, "Nautobot VirtualMachine", reverse("virtualization:virtualmachine_list")),
@@ -83,6 +87,7 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
 
     def config_information(self) -> dict[str, Any]:
         """Display useful configuration details in the Job form."""
+
         cfg = _get_config()
         return {
             "Proxmox URL": cfg.proxmox_url,
@@ -98,12 +103,14 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
 
     def load_source_adapter(self):
         """Build and load the Proxmox (source) adapter."""
+
         cfg = _get_config()
         self.source_adapter = ProxmoxAdapter(config=cfg, job=self)
         self.source_adapter.load()
 
     def load_target_adapter(self):
         """Prepare Nautobot (target) and load the adapter."""
+
         cfg = _get_config()
         _ensure_cluster_type(cfg.cluster_type_name)
         _ensure_vm_custom_fields()
@@ -113,4 +120,5 @@ class ProxmoxDataSource(DataSource):  # pylint: disable=too-many-instance-attrib
 
     def execute_sync(self, *args, **kwargs) -> None:
         """Override to ensure deletions are never allowed."""
+
         return super().execute_sync(*args, **kwargs)
