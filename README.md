@@ -27,7 +27,7 @@ Permissions can likely be scoped even smaller by adjusting the path and creating
 
 ### Nautobot plugin
 
-Currently, the plugin is not uploaded to any other platforms than Codeberg. 
+Currently, the plugin is not uploaded to any other platforms than [Codeberg](https://codeberg.org/Harbourheading/nautobot-ssot-proxmox) and [Github](https://github.com/HarbourHeading/nautobot-ssot-proxmox). 
 The below steps are to install the plugin locally and to run the steps on the nautobot server.
 NOTE: [Nautobot SSoT](https://docs.nautobot.com/projects/ssot/en/latest/admin/install/) needs to be installed for the plugin to work.
 
